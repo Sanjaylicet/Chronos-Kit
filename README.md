@@ -1,6 +1,23 @@
-# Spring Boot Project with Spotless
+# OrganaTrack
 
-This is a Spring Boot project configured with Maven and the Spotless plugin for strict code formatting.
+A Spring Boot application with state machine functionality for organizational tracking and workflow management.
+
+## Features
+
+- **Java 21 LTS**: Latest long-term support version
+- **Spring Boot 3.3.7**: Latest stable Spring Boot version
+- **Hiero State Machine**: Custom Spring Boot starter for annotation-driven state management
+- **Code Quality**: Spotless plugin for strict code formatting
+
+## Projects
+
+### Main Application (`demo`)
+Spring Boot application with REST API capabilities.
+
+### Hiero State Machine Starter (`hiero-state-machine-spring-boot-starter`)
+A custom Spring Boot starter providing annotation-driven state machine functionality.
+
+For detailed documentation, see [hiero-state-machine-spring-boot-starter/README.md](hiero-state-machine-spring-boot-starter/README.md)
 
 ## Build and Run
 
@@ -41,6 +58,5 @@ Spotless check runs automatically during the `validate` phase of the Maven build
 
 ## Requirements
 
-- Java 17+
-- Maven 3.6+
-
+- Java 21+
+- Maven 3.9+
