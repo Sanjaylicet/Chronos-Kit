@@ -17,16 +17,19 @@ mvn spring-boot:run
 This project uses Spotless for code formatting enforcement.
 
 ### Check formatting
+
 ```bash
 mvn spotless:check
 ```
 
 ### Apply formatting
+
 ```bash
 mvn spotless:apply
 ```
 
 ### Features
+
 - **Google Java Format**: Enforces Google code style
 - **Import organization**: Orders imports (java, javax, org, com)
 - **Removes unused imports**
@@ -37,5 +40,7 @@ mvn spotless:apply
 Spotless check runs automatically during the `validate` phase of the Maven build lifecycle.
 
 ## Requirements
+
 - Java 17+
 - Maven 3.6+
+

@@ -1,121 +1,118 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0          https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.2.3</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.example</groupId>
+  <artifactId>demo</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>demo</name>
+  <description>Spring Boot project with Spotless formatting</description>
+
+  <properties>
+    <java.version>17</java.version>
+    <spotless.version>2.43.0</spotless.version>
+  </properties>
+
+  <dependencies>
+    <!-- Spring Boot Web Starter -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- Spring Boot Test Starter -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Spring Boot Maven Plugin -->
+      <plugin>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.3</version>
-        <relativePath/>
-    </parent>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
 
-    <groupId>com.example</groupId>
-    <artifactId>demo</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>demo</name>
-    <description>Spring Boot project with Spotless formatting</description>
+      <!-- Spotless Plugin for Code Formatting -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <!-- Java formatting -->
+          <java>
+            <!-- Apply to Java source files -->
+            <includes>
+              <include>src/main/java/**/*.java</include>
+              <include>src/test/java/**/*.java</include>
+            </includes>
 
-    <properties>
-        <java.version>17</java.version>
-        <spotless.version>2.43.0</spotless.version>
-    </properties>
+            <!-- Google Java Format -->
+            <googleJavaFormat>
+              <version>1.19.2</version>
+              <style>GOOGLE</style>
+            </googleJavaFormat>
 
-    <dependencies>
-        <!-- Spring Boot Web Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+            <!-- Remove unused imports -->
+            <removeUnusedImports/>
 
-        <!-- Spring Boot Test Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+            <!-- Import order -->
+            <importOrder>
+              <order>java,javax,org,com</order>
+            </importOrder>
 
-    <build>
-        <plugins>
-            <!-- Spring Boot Maven Plugin -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
+            <!-- Trim trailing whitespace -->
+            <trimTrailingWhitespace/>
 
-            <!-- Spotless Plugin for Code Formatting -->
-            <plugin>
-                <groupId>com.diffplug.spotless</groupId>
-                <artifactId>spotless-maven-plugin</artifactId>
-                <version>${spotless.version}</version>
-                <configuration>
-                    <!-- Java formatting -->
-                    <java>
-                        <!-- Apply to Java source files -->
-                        <includes>
-                            <include>src/main/java/**/*.java</include>
-                            <include>src/test/java/**/*.java</include>
-                        </includes>
+            <!-- Ensure file ends with newline -->
+            <endWithNewline/>
 
-                        <!-- Google Java Format -->
-                        <googleJavaFormat>
-                            <version>1.19.2</version>
-                            <style>GOOGLE</style>
-                        </googleJavaFormat>
+            <!-- License header (optional) -->
+            <licenseHeader>
+              <content>/* Copyright (C) $YEAR */</content>
+            </licenseHeader>
+          </java>
 
-                        <!-- Remove unused imports -->
-                        <removeUnusedImports/>
+          <!-- POM formatting -->
+          <pom>
+            <includes>
+              <include>pom.xml</include>
+            </includes>
+            <sortPom>
+              <expandEmptyElements>false</expandEmptyElements>
+            </sortPom>
+          </pom>
 
-                        <!-- Import order -->
-                        <importOrder>
-                            <order>java,javax,org,com</order>
-                        </importOrder>
-
-                        <!-- Trim trailing whitespace -->
-                        <trimTrailingWhitespace/>
-
-                        <!-- Ensure file ends with newline -->
-                        <endWithNewline/>
-
-                        <!-- License header (optional) -->
-                        <licenseHeader>
-                            <content>/* Copyright (C) $YEAR */</content>
-                        </licenseHeader>
-                    </java>
-
-                    <!-- POM formatting -->
-                    <pom>
-                        <includes>
-                            <include>pom.xml</include>
-                        </includes>
-                        <sortPom>
-                            <expandEmptyElements>false</expandEmptyElements>
-                        </sortPom>
-                    </pom>
-
-                    <!-- Markdown formatting -->
-                    <markdown>
-                        <includes>
-                            <include>**/*.md</include>
-                        </includes>
-                        <flexmark/>
-                    </markdown>
-                </configuration>
-                <executions>
-                    <!-- Check formatting during validate phase -->
-                    <execution>
-                        <id>spotless-check</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+          <!-- Markdown formatting -->
+          <markdown>
+            <includes>
+              <include>**/*.md</include>
+            </includes>
+            <flexmark/>
+          </markdown>
+        </configuration>
+        <executions>
+          <!-- Check formatting during validate phase -->
+          <execution>
+            <id>spotless-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>validate</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
