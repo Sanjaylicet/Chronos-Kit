@@ -1,0 +1,157 @@
+name: DCO & GPG Enforcement
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ─────────────────────────────────────────
+  # Job 1: Developer Certificate of Origin
+  # ─────────────────────────────────────────
+  dco-check:
+    name: DCO Sign-off Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # dco-check/dco-check@v1 is the correct, published DCO action.
+      # It scans every commit in the PR for a valid "Signed-off-by:" trailer.
+      - name: Verify DCO sign-offs
+        uses: dco-check/dco-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─────────────────────────────────────────
+  # Job 2: GPG Signature Verification
+  # ─────────────────────────────────────────
+  gpg-verification:
+    name: GPG Signature Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Verify GPG signatures on all PR commits
+        id: gpg-check
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          echo "Inspecting commits from $BASE_SHA to $HEAD_SHA"
+          COMMITS=$(git rev-list "${BASE_SHA}..${HEAD_SHA}")
+
+          if [ -z "$COMMITS" ]; then
+            echo "No commits found in range — nothing to verify."
+            exit 0
+          fi
+
+          UNSIGNED=()
+          for commit in $COMMITS; do
+            SIGNATURE=$(git log --format='%G?' -n 1 "$commit")
+            case "$SIGNATURE" in
+              G) echo "✅  $commit — valid GPG signature" ;;
+              U) echo "⚠️  $commit — unknown GPG key (treating as unsigned)" ; UNSIGNED+=("$commit") ;;
+              X) echo "⚠️  $commit — expired GPG key" ; UNSIGNED+=("$commit") ;;
+              Y) echo "⚠️  $commit — expired signature" ; UNSIGNED+=("$commit") ;;
+              R) echo "⚠️  $commit — revoked GPG key" ; UNSIGNED+=("$commit") ;;
+              E) echo "⚠️  $commit — GPG key missing from keyring" ; UNSIGNED+=("$commit") ;;
+              N) echo "❌  $commit — NO signature at all" ; UNSIGNED+=("$commit") ;;
+              *) echo "❓  $commit — unknown status ($SIGNATURE)" ; UNSIGNED+=("$commit") ;;
+            esac
+          done
+
+          if [ ${#UNSIGNED[@]} -gt 0 ]; then
+            echo ""
+            echo "❌ Found ${#UNSIGNED[@]} unsigned / unverified commit(s)."
+            echo "::set-output name=unsigned_count::${#UNSIGNED[@]}"
+            exit 1
+          fi
+
+          echo "✅ All commits carry a valid GPG signature."
+
+      - name: Post remediation guidance on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              "## ❌ GPG Signature Verification Failed",
+              "",
+              "One or more commits in this PR are **not GPG-signed**. All commits must be signed with a GPG key that is registered on your GitHub account.",
+              "",
+              "### Quick-fix: sign your latest commit",
+              "```bash",
+              "git commit --amend --no-edit -S",
+              "git push --force-with-lease",
+              "```",
+              "",
+              "### Sign all commits in the branch at once",
+              "```bash",
+              "git rebase --exec 'git commit --amend --no-edit -S' -i origin/main",
+              "git push --force-with-lease",
+              "```",
+              "",
+              "### Generate a GPG key (first-time setup)",
+              "```bash",
+              "gpg --full-generate-key                          # RSA 4096, no expiry",
+              "gpg --list-secret-keys --keyid-format=long       # copy the key ID",
+              "gpg --armor --export <YOUR_GPG_KEY_ID>           # paste into GitHub → Settings → SSH and GPG keys",
+              "git config --global user.signingkey <YOUR_GPG_KEY_ID>",
+              "git config --global commit.gpgsign true",
+              "```",
+              "",
+              "### Enforce DCO sign-off locally (run once per clone)",
+              "```bash",
+              "git config --global alias.cs 'commit -S -s'      # git cs -m \"feat: ...\"",
+              "```",
+              "",
+              "> **Developer Certificate of Origin**: By signing off on a commit you certify that you wrote it",
+              "> or otherwise have the right to submit it under the open-source license of this project.",
+            ].join("\\n");
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+  # ─────────────────────────────────────────
+  # Job 3: Gate
+  # ─────────────────────────────────────────
+  dco-gate:
+    name: DCO Gate
+    runs-on: ubuntu-latest
+    needs: [dco-check, gpg-verification]
+    if: always()
+
+    steps:
+      - name: Evaluate results
+        run: |
+          dco="${{ needs.dco-check.result }}"
+          gpg="${{ needs.gpg-verification.result }}"
+
+          if [[ "$dco" != "success" ]]; then
+            echo "❌ DCO sign-off check did not pass (status: $dco)."
+            exit 1
+          fi
+
+          if [[ "$gpg" != "success" ]]; then
+            echo "❌ GPG signature verification did not pass (status: $gpg)."
+            exit 1
+          fi
+
+          echo "✅ DCO and GPG checks passed."

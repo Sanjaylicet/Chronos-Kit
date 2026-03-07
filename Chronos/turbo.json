@@ -1,0 +1,79 @@
+{
+    "$schema": "https://turbo.build/schema.json",
+    "globalEnv": [
+        "HIERO_NETWORK",
+        "HIERO_MIRROR_NODE_URL",
+        "HIERO_OPERATOR_ID",
+        "HIERO_OPERATOR_KEY",
+        "NODE_ENV"
+    ],
+    "pipeline": {
+        "build": {
+            "dependsOn": [
+                "^build"
+            ],
+            "inputs": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "tsconfig.json",
+                "tsup.config.ts"
+            ],
+            "outputs": [
+                "dist/**"
+            ]
+        },
+        "dev": {
+            "dependsOn": [
+                "^build"
+            ],
+            "cache": false,
+            "persistent": true
+        },
+        "type-check": {
+            "dependsOn": [
+                "^build"
+            ],
+            "inputs": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "tsconfig.json"
+            ],
+            "outputs": []
+        },
+        "lint": {
+            "inputs": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                ".eslintrc.json"
+            ],
+            "outputs": []
+        },
+        "test": {
+            "dependsOn": [
+                "build"
+            ],
+            "inputs": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "vitest.config.ts"
+            ],
+            "outputs": []
+        },
+        "test:ci": {
+            "dependsOn": [
+                "build"
+            ],
+            "inputs": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "vitest.config.ts"
+            ],
+            "outputs": [
+                "coverage/**"
+            ]
+        },
+        "clean": {
+            "cache": false
+        }
+    }
+}

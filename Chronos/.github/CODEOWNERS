@@ -1,0 +1,25 @@
+# CODEOWNERS
+# Each line is a file pattern followed by one or more owners.
+# Owners are matched against top-level GitHub teams or @usernames.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: all files require review from core maintainers
+*                                           @chronos-kit/maintainers
+
+# Core library
+packages/chronos-core/**                    @chronos-kit/core-reviewers @chronos-kit/maintainers
+
+# React integration
+packages/chronos-react/**                   @chronos-kit/react-reviewers @chronos-kit/maintainers
+
+# CI/CD & workflows — changes require senior engineer approval
+.github/workflows/**                        @chronos-kit/maintainers
+
+# Security-sensitive configuration
+.npmrc                                      @chronos-kit/maintainers
+turbo.json                                  @chronos-kit/maintainers
+
+# Documentation
+README.md                                   @chronos-kit/docs @chronos-kit/maintainers
+CONTRIBUTING.md                             @chronos-kit/docs @chronos-kit/maintainers
+SECURITY.md                                 @chronos-kit/maintainers

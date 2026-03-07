@@ -1,0 +1,5 @@
+#!/bin/sh
+# .husky/pre-commit
+# Runs lint-staged to lint and format all staged files before committing.
+
+npx --no-install lint-staged
