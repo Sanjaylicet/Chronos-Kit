@@ -354,8 +354,21 @@ export class MirrorNodeClient {
       return;
     }
 
+    if (typeof process === 'undefined' || typeof process.versions?.node === 'undefined') {
+      return;
+    }
+
+    if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
+      return;
+    }
+
     try {
-      const dns = await import('node:dns/promises');
+      const runtimeImport = new Function(
+        'specifier',
+        'return import(specifier);'
+      ) as (specifier: string) => Promise<typeof import('node:dns/promises')>;
+
+      const dns = await runtimeImport('node:dns/promises');
       const resolved = await dns.lookup(this.baseHost, { all: true, verbatim: true });
       for (const record of resolved) {
         if (this.isPrivateIpv4(record.address)) {
@@ -370,7 +383,11 @@ export class MirrorNodeClient {
         throw error;
       }
 
-      throw new MirrorNodeError(`Mirror node host could not be resolved: ${this.baseHost}`);
+      throw new MirrorNodeError(
+        `Mirror node host could not be resolved: ${this.baseHost}`,
+        undefined,
+        '/'
+      );
     }
   }
 
