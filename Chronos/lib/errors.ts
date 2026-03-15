@@ -90,3 +90,20 @@ export class EmptyBatchError extends ChronosError {
     this.name = 'EmptyBatchError';
   }
 }
+
+export class SchedulePastDateError extends ChronosError {
+  constructor(public readonly date: Date) {
+    super(
+      `executeAt date ${date.toISOString()} is in the past`,
+      'SCHEDULE_PAST_DATE',
+    );
+    this.name = 'SchedulePastDateError';
+  }
+}
+
+export class NestedScheduleError extends ChronosError {
+  constructor(reason: string) {
+    super(reason, 'NESTED_SCHEDULE');
+    this.name = 'NestedScheduleError';
+  }
+}
