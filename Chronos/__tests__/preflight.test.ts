@@ -73,12 +73,12 @@ describe('PreFlightEngine', () => {
     const result = await engine.run(plan);
 
     const f = result.failures.find((x) => x.reason === 'INSUFFICIENT_HBAR');
-    expect(f!.required).toBe(2_700_000n);
+    expect(f!.required).toBe(BigInt(2_700_000));
 
     // Verify the exact value passed to verifyHbarBalance
     expect(vi.mocked(client.verifyHbarBalance)).toHaveBeenCalledWith(
       '0.0.1001',
-      2_700_000n,
+      BigInt(2_700_000),
     );
   });
 

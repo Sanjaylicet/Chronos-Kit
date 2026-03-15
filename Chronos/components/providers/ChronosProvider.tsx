@@ -2,12 +2,15 @@
 
 import { MirrorNodeClient } from '@/lib/client';
 import type { HieroNetworkConfig } from '@/lib/types';
+import type { Client } from '@hashgraph/sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
 interface ChronosContextValue {
   config: HieroNetworkConfig;
   mirrorNodeClient: MirrorNodeClient;
+  client: Client | null;
+  setClient: (client: Client | null) => void;
 }
 
 const ChronosContext = createContext<ChronosContextValue | null>(null);
@@ -26,6 +29,8 @@ interface ChronosProviderProps {
 }
 
 export function ChronosProvider({ config, children }: ChronosProviderProps) {
+  const [client, setClient] = useState<Client | null>(null);
+
   const queryClient = useMemo(
     () =>
       new QueryClient({
@@ -46,8 +51,8 @@ export function ChronosProvider({ config, children }: ChronosProviderProps) {
   );
 
   const contextValue = useMemo(
-    () => ({ config, mirrorNodeClient }),
-    [config, mirrorNodeClient]
+    () => ({ config, mirrorNodeClient, client, setClient }),
+    [config, mirrorNodeClient, client]
   );
 
   return (

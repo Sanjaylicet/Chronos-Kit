@@ -1,49 +1,78 @@
 'use client';
 
+import { useChronos } from '@/components/providers/ChronosProvider';
 import { BatchCompiler } from '@/lib/batch';
-import type { BatchTransactionConfig, BatchCompilationResult } from '@/lib/types';
-import type { Transaction, AccountId } from '@hashgraph/sdk';
-import { useState, useCallback } from 'react';
+import { PreFlightError } from '@/lib/errors';
+import { PreFlightEngine, type PreFlightPlan } from '@/lib/preflight';
+import { PrivateKey, type Transaction, type TransactionReceipt } from '@hashgraph/sdk';
+import { useMutation } from '@tanstack/react-query';
 
-interface UseHieroBatchOptions {
-  config: BatchTransactionConfig;
-}
-
-interface UseHieroBatchReturn {
-  compileBatch: (
-    transactions: Transaction[],
-    payerAccountId: AccountId | string
-  ) => Promise<BatchCompilationResult>;
-  isCompiling: boolean;
+interface UseHieroBatchResult {
+  submitBatch: (transactions: Transaction[], plan: PreFlightPlan) => Promise<TransactionReceipt[]>;
+  isPending: boolean;
+  isSuccess: boolean;
+  isError: boolean;
   error: Error | null;
-  result: BatchCompilationResult | null;
+  receipts: TransactionReceipt[] | null;
 }
 
-export function useHieroBatch(options: UseHieroBatchOptions): UseHieroBatchReturn {
-  const [isCompiling, setIsCompiling] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [result, setResult] = useState<BatchCompilationResult | null>(null);
+function getOperatorKey(): PrivateKey {
+  const operatorKey = process.env.OPERATOR_KEY;
+  if (!operatorKey) {
+    throw new Error('OPERATOR_KEY is required');
+  }
 
-  const compileBatch = useCallback(
-    async (transactions: Transaction[], payerAccountId: AccountId | string) => {
-      setIsCompiling(true);
-      setError(null);
+  try {
+    return PrivateKey.fromStringECDSA(operatorKey);
+  } catch {
+    try {
+      return PrivateKey.fromStringED25519(operatorKey);
+    } catch {
+      throw new Error('OPERATOR_KEY is invalid');
+    }
+  }
+}
 
-      try {
-        const compiler = new BatchCompiler(options.config);
-        const compiled = compiler.compile(transactions, payerAccountId);
-        setResult(compiled);
-        return compiled;
-      } catch (err) {
-        const caught = err instanceof Error ? err : new Error('Unknown error');
-        setError(caught);
-        throw caught;
-      } finally {
-        setIsCompiling(false);
+export function useHieroBatch(): UseHieroBatchResult {
+  const { client, mirrorNodeClient } = useChronos();
+
+  const mutation = useMutation<TransactionReceipt[], Error, { transactions: Transaction[]; plan: PreFlightPlan }>({
+    mutationFn: async ({ transactions, plan }) => {
+      if (!client) {
+        throw new Error('Hiero client is not ready. Initialize useHieroAccount() first.');
       }
-    },
-    [options.config]
-  );
 
-  return { compileBatch, isCompiling, error, result };
+      const preflightResult = await new PreFlightEngine(mirrorNodeClient).run(plan);
+      if (!preflightResult.passed) {
+        throw new PreFlightError('Pre-flight checks failed', preflightResult.failures);
+      }
+
+      const compiler = new BatchCompiler();
+      for (const transaction of transactions) {
+        compiler.add(transaction);
+      }
+
+      const batches = compiler.compile();
+      const operatorKey = getOperatorKey();
+      const receipts: TransactionReceipt[] = [];
+
+      for (const batch of batches) {
+        const signedBatch = await batch.sign(operatorKey);
+        const response = await signedBatch.execute(client);
+        const receipt = await response.getReceipt(client);
+        receipts.push(receipt);
+      }
+
+      return receipts;
+    },
+  });
+
+  return {
+    submitBatch: (transactions, plan) => mutation.mutateAsync({ transactions, plan }),
+    isPending: mutation.isPending,
+    isSuccess: mutation.isSuccess,
+    isError: mutation.isError,
+    error: mutation.error,
+    receipts: mutation.data ?? null,
+  };
 }

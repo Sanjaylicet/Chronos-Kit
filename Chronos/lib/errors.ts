@@ -2,6 +2,8 @@
  * Custom error types for Chronos-Kit
  */
 
+import type { PreFlightFailure } from './preflight';
+
 export class ChronosError extends Error {
   constructor(message: string, public readonly code: string) {
     super(message);
@@ -43,6 +45,13 @@ export class PreFlightValidationError extends ChronosError {
   constructor(message: string) {
     super(`Pre-flight validation failed: ${message}`, 'PREFLIGHT_VALIDATION_FAILED');
     this.name = 'PreFlightValidationError';
+  }
+}
+
+export class PreFlightError extends ChronosError {
+  constructor(message: string, public readonly failures: PreFlightFailure[]) {
+    super(message, 'PREFLIGHT_FAILED');
+    this.name = 'PreFlightError';
   }
 }
 

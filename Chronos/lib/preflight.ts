@@ -14,13 +14,13 @@ import type { MirrorNodeClient } from './client';
 // ---------------------------------------------------------------------------
 
 /** Flat fee charged for the outer ScheduleCreateTransaction (tinybars). */
-const SCHEDULE_CREATE_FEE = 1_000_000n;
+const SCHEDULE_CREATE_FEE = BigInt(1_000_000);
 
 /** Flat fee charged for the outer BatchTransaction container (tinybars). */
-const BATCH_OUTER_FEE = 200_000n;
+const BATCH_OUTER_FEE = BigInt(200_000);
 
 /** Per-inner-transaction base fee estimate (tinybars). */
-const BASE_FEE_TINYBARS = 500_000n;
+const BASE_FEE_TINYBARS = BigInt(500_000);
 
 // ---------------------------------------------------------------------------
 // Public types
