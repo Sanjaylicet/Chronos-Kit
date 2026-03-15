@@ -370,7 +370,7 @@ export class MirrorNodeClient {
         throw error;
       }
 
-      throw new SSRFBlockedError(this.baseUrl, 'host could not be safely resolved');
+      throw new MirrorNodeError(`Mirror node host could not be resolved: ${this.baseHost}`);
     }
   }
 

@@ -63,3 +63,30 @@ export class SSRFBlockedError extends ChronosError {
     this.name = 'SSRFBlockedError';
   }
 }
+
+export class TransactionOversizeError extends ChronosError {
+  constructor(public readonly byteCount: number) {
+    super(
+      `Transaction serializes to ${byteCount} bytes, exceeding the 5900-byte limit`,
+      'TRANSACTION_OVERSIZE'
+    );
+    this.name = 'TransactionOversizeError';
+  }
+}
+
+export class BatchKeyOnOuterError extends ChronosError {
+  constructor() {
+    super(
+      'batchKey must not be set on the outer BatchTransaction',
+      'BATCH_KEY_ON_OUTER'
+    );
+    this.name = 'BatchKeyOnOuterError';
+  }
+}
+
+export class EmptyBatchError extends ChronosError {
+  constructor() {
+    super('compile() was called with no transactions added', 'EMPTY_BATCH');
+    this.name = 'EmptyBatchError';
+  }
+}
