@@ -47,8 +47,19 @@ export class PreFlightValidationError extends ChronosError {
 }
 
 export class MirrorNodeError extends ChronosError {
-  constructor(message: string, public readonly statusCode?: number) {
+  constructor(
+    message: string,
+    public readonly statusCode?: number,
+    public readonly path?: string
+  ) {
     super(`Mirror node error: ${message}`, 'MIRROR_NODE_ERROR');
     this.name = 'MirrorNodeError';
+  }
+}
+
+export class SSRFBlockedError extends ChronosError {
+  constructor(url: string, reason: string) {
+    super(`Blocked mirror node URL "${url}": ${reason}`, 'SSRF_BLOCKED');
+    this.name = 'SSRFBlockedError';
   }
 }
