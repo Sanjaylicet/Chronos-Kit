@@ -1,4 +1,2 @@
-# pnpm-workspace.yaml
 packages:
-  - "packages/chronos-core"
-  - "packages/chronos-react"
+  - 'packages/*'
