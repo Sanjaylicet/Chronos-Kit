@@ -1,71 +1,20 @@
 'use client';
 
 import {
-  AccountBalanceQuery,
   AccountId,
   Client,
   PrivateKey,
-  Status,
-  type Hbar,
 } from '@hashgraph/sdk';
 import { useChronos } from '@/components/providers/ChronosProvider';
 import { useEffect, useRef, useState } from 'react';
 
 type HederaNetwork = 'mainnet' | 'testnet';
 
-const NODES: Record<HederaNetwork, Array<Record<string, string>>> = {
-  mainnet: [
-    { '0.mainnet.hedera.com:50211': '0.0.3' },
-    { '1.mainnet.hedera.com:50211': '0.0.4' },
-    { '2.mainnet.hedera.com:50211': '0.0.5' },
-  ],
-  testnet: [
-    { '0.testnet.hedera.com:50211': '0.0.3' },
-    { '1.testnet.hedera.com:50211': '0.0.4' },
-    { '2.testnet.hedera.com:50211': '0.0.5' },
-  ],
-};
-
-const NODE_CHECK_TIMEOUT_MS = 3_000;
-const MAX_NODE_ATTEMPTS = 3;
-
 export interface UseHieroAccountResult {
   client: Client | null;
   accountId: string | null;
   isReady: boolean;
   error: Error | null;
-}
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      reject(new Error(`Timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-
-    promise
-      .then((value) => {
-        clearTimeout(timeoutId);
-        resolve(value);
-      })
-      .catch((error: unknown) => {
-        clearTimeout(timeoutId);
-        reject(error);
-      });
-  });
-}
-
-function isRetryableNodeError(error: unknown): boolean {
-  if (error instanceof Error && error.message.includes('Timed out')) {
-    return true;
-  }
-
-  const maybeStatus = (error as { status?: Status })?.status;
-  if (maybeStatus === Status.InvalidNodeAccount) {
-    return true;
-  }
-
-  const message = error instanceof Error ? error.message : String(error);
-  return message.includes('INVALID_NODE_ACCOUNT');
 }
 
 function parseNetwork(value: string | undefined): HederaNetwork {
@@ -96,31 +45,13 @@ async function initializeClient(
   operatorId: AccountId,
   operatorKey: PrivateKey
 ): Promise<Client> {
-  const nodes = NODES[network];
+  const client = network === 'mainnet' ? Client.forMainnet() : Client.forTestnet();
 
-  for (let attempt = 0; attempt < Math.min(MAX_NODE_ATTEMPTS, nodes.length); attempt += 1) {
-    const node = nodes[attempt];
-    const client = Client.forNetwork(node);
-    client.setOperator(operatorId, operatorKey);
+  client.setOperator(operatorId, operatorKey);
+  client.setMaxAttempts(5);
+  client.setRequestTimeout(30_000);
 
-    try {
-      await withTimeout(
-        new AccountBalanceQuery()
-          .setAccountId(operatorId)
-          .execute(client) as Promise<Hbar | { hbars: Hbar }>,
-        NODE_CHECK_TIMEOUT_MS
-      );
-      return client;
-    } catch (error: unknown) {
-      client.close();
-
-      if (!isRetryableNodeError(error) || attempt === MAX_NODE_ATTEMPTS - 1) {
-        throw error instanceof Error ? error : new Error('Failed to initialize Hiero client');
-      }
-    }
-  }
-
-  throw new Error('Failed to initialize Hiero client');
+  return client;
 }
 
 export function useHieroAccount(): UseHieroAccountResult {
@@ -147,7 +78,7 @@ export function useHieroAccount(): UseHieroAccountResult {
         }
 
         const operatorId = AccountId.fromString(operatorIdValue);
-        const operatorKey = parseOperatorKey(process.env.OPERATOR_KEY);
+        const operatorKey = parseOperatorKey(process.env.NEXT_PUBLIC_OPERATOR_KEY);
         const initializedClient = await initializeClient(network, operatorId, operatorKey);
 
         if (cancelled) {

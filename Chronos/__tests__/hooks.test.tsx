@@ -58,7 +58,7 @@ describe('React hooks', () => {
   it('useHieroAccount returns isReady false initially and sets error when env vars are missing', async () => {
     delete process.env.NEXT_PUBLIC_HEDERA_NETWORK;
     delete process.env.NEXT_PUBLIC_OPERATOR_ID;
-    delete process.env.OPERATOR_KEY;
+    delete process.env.NEXT_PUBLIC_OPERATOR_KEY;
 
     const { result } = renderHook(() => useHieroAccount());
 
@@ -116,7 +116,7 @@ describe('React hooks', () => {
 
     vi.spyOn(PrivateKey, 'fromStringECDSA').mockReturnValue({} as never);
 
-    process.env.OPERATOR_KEY = '302e020100300506032b657004220420aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    process.env.NEXT_PUBLIC_OPERATOR_KEY = '302e020100300506032b657004220420aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
     const wrapper = createMutationWrapper();
     const { result } = renderHook(() => useHieroSchedule(), { wrapper });

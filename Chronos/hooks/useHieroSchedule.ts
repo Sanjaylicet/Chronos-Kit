@@ -23,7 +23,7 @@ interface UseHieroScheduleReturn {
 }
 
 function getOperatorKey(): PrivateKey {
-  const operatorKey = process.env.OPERATOR_KEY;
+  const operatorKey = process.env.NEXT_PUBLIC_OPERATOR_KEY;
   if (!operatorKey) {
     throw new Error('OPERATOR_KEY is required');
   }
