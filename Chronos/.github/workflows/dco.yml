@@ -1,0 +1,25 @@
+name: DCO
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  dco:
+    name: Enforce DCO Sign-Off
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Developer Certificate of Origin sign-offs
+        uses: tisonkun/dco-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

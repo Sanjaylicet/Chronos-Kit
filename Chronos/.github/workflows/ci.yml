@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Type-check, Build, and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      NEXT_PUBLIC_MIRROR_NODE_URL: https://testnet.mirrornode.hedera.com
+      NEXT_PUBLIC_HEDERA_NETWORK: testnet
+      NEXT_PUBLIC_OPERATOR_ID: "0.0.1"
+      NEXT_PUBLIC_OPERATOR_KEY: 302e020100300506032b6570042204200000000000000000000000000000000000000000000000000000000000000001
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript type checks
+        run: npm run type-check
+
+      - name: Build Next.js application
+        run: npm run build
+
+      - name: Run Vitest suite
+        run: npm test
