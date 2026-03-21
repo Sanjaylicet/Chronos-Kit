@@ -2,31 +2,34 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Typecheck, Tests, And Solo Network Validation
+  build-and-test:
+    name: Type-check, Build, and Test
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
+
     env:
-      CI: true
-      NEXT_PUBLIC_HIERO_NETWORK: testnet
-      NEXT_PUBLIC_HIERO_MIRROR_NODE_URL: http://127.0.0.1:5551
-      HIERO_MIRROR_NODE_URL: http://127.0.0.1:5551
+      NEXT_PUBLIC_MIRROR_NODE_URL: https://testnet.mirrornode.hedera.com
+      NEXT_PUBLIC_HEDERA_NETWORK: testnet
+      NEXT_PUBLIC_OPERATOR_ID: "0.0.1"
+      NEXT_PUBLIC_OPERATOR_KEY: 302e020100300506032b6570042204200000000000000000000000000000000000000000000000000000000000000001
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -35,39 +38,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Boot ephemeral local Hiero network with Mirror Node
-        id: solo
-        uses: hiero-ledger/hiero-solo-action@v0.8
-        with:
-          installMirrorNode: true
-          mirrorNodePortRest: '5551'
-
-      - name: Confirm Mirror Node is reachable on port 5551
-        shell: bash
-        run: |
-          for attempt in {1..60}; do
-            if curl -fsS http://127.0.0.1:5551/api/v1/network/nodes >/dev/null; then
-              echo "Mirror Node REST API is reachable on port 5551."
-              exit 0
-            fi
-            echo "Waiting for Mirror Node on port 5551 (attempt ${attempt}/60)..."
-            sleep 5
-          done
-
-          echo "Mirror Node REST API did not become reachable on port 5551." >&2
-          kubectl get pods -A || true
-          kubectl get svc -n solo || true
-          exit 1
-
       - name: Run TypeScript type checks
         run: npm run type-check
 
+      - name: Build Next.js application
+        run: npm run build
+
       - name: Run Vitest suite
         run: npm test
-
-      - name: Tear down ephemeral local Hiero network
-        if: always()
-        shell: bash
-        run: |
-          kind delete cluster --name solo-e2e || true
-          rm -rf ~/.solo
