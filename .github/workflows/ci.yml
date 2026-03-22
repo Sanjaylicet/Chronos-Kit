@@ -19,6 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    defaults:
+      run:
+        working-directory: ./Chronos
+
     env:
       NEXT_PUBLIC_MIRROR_NODE_URL: https://testnet.mirrornode.hedera.com
       NEXT_PUBLIC_HEDERA_NETWORK: testnet
@@ -34,6 +38,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: Chronos/package-lock.json
 
       - name: Install dependencies
         run: npm ci
