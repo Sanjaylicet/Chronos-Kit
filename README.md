@@ -1,7 +1,6 @@
 # Chronos-Kit
 
 [![CI](https://github.com/Sanjaylicet/Chronos-Kit/actions/workflows/ci.yml/badge.svg)](https://github.com/Sanjaylicet/Chronos-Kit/actions/workflows/ci.yml)
-[![DCO](https://github.com/Sanjaylicet/Chronos-Kit/actions/workflows/dco.yml/badge.svg)](https://github.com/Sanjaylicet/Chronos-Kit/actions/workflows/dco.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
