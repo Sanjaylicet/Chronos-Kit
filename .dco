@@ -1,0 +1,3 @@
+# DCO Configuration File
+# Allow commits that predate enforcement
+allowMergeWithoutSignature = true
