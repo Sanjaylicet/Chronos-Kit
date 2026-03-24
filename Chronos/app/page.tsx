@@ -1,4 +1,5 @@
 import { AccountDashboard } from '@/components/AccountDashboard';
+import Link from 'next/link';
 
 const network = process.env.NEXT_PUBLIC_HIERO_NETWORK ?? 'testnet';
 
@@ -22,6 +23,11 @@ export default function Home() {
             Atomic batch transactions (HIP-551) and long-term scheduled
             transactions (HIP-423) for the Hiero network.
           </p>
+          <div style={{ marginTop: '30px' }}>
+            <Link href="/demo" className="btn">
+              Launch Demo
+            </Link>
+          </div>
         </section>
 
         <AccountDashboard />
